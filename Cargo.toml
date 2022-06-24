@@ -1,0 +1,13 @@
+[package]
+name = "waypoints"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+[[bin]]
+name = "wps"
+path = "src/main.rs"
+
+[dependencies]
+regex = "1.5.6"
+clipboard-win = "4.4.1"

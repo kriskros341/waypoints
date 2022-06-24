@@ -1,0 +1,2 @@
+waypoints = C:\Users\TrybSkupienia\Desktop\rust\waypoints
+main = C:
