@@ -1,2 +1,3 @@
-waypoints = C:\Users\TrybSkupienia\Desktop\rust\waypoints
 main = C:
+m = C:
+waypoints = C:\Users\TrybSkupienia\Desktop\rust\waypoints
