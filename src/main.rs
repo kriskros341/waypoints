@@ -20,10 +20,6 @@ fn deserialize(line: &str) -> (String, String) {
   return (s1.to_string(), s2.to_string());
 }
 
-fn braces(s: &str) -> String {
-  return format!("[{}]", s);
-}
-
 fn shortcuts_from_file(f: &str) -> HashMap<String, String>{
   let s = fs::read_to_string(f).expect("read file");
   let v: Vec<&str> = s.split("\n").collect();
@@ -36,6 +32,10 @@ fn shortcuts_from_file(f: &str) -> HashMap<String, String>{
     }
   }
   return result;
+}
+
+fn rm_braces(s: &str) -> &str {
+  return &s[1..s.len()-1];
 }
 
 fn create_shortcuts_file() {
@@ -80,7 +80,7 @@ fn main() {
         "--list" => {
           let l = shortcuts_from_file(CONFFILE);
           for (k, v) in l {
-            println!("{} -> {}", k, v);
+            println!("{k} -> {v}");
           }
         },
         "--rm" => {
@@ -89,7 +89,6 @@ fn main() {
           //let drained = l.drain_filter(|&k, v| k != braces(s1)); LOL what the fuck rust? It's been  in nightly 2 years...
           create_shortcuts_file();
           for (k, v) in l.into_iter() {
-            println!("{}, {}", k, s1);
             if k != s1.to_string() {
               set_shortcut(&k, &v);
             }
@@ -97,8 +96,9 @@ fn main() {
         },
         _ => {
           let mut fin = f.to_string();
+          println!("{f}");
           for original in re.captures_iter(f) {
-            match shortcuts.get(&original[0]) {
+            match shortcuts.get(rm_braces(&original[0])) {
               Some(matched) => {
                 fin = fin.replace(&original[0], matched);
                 println!("{}", &fin);
@@ -133,7 +133,7 @@ mod unit_tests {
     let mut h = HashMap::new();
     h.insert("main".to_string(), "C:".to_string());
     let result = serialize(&h);
-    assert_eq!(result, "main = C:", "{}", result);
+    assert_eq!(result, "main = C:\n", "{}", result);
   }
   #[test]
   fn test_deserialization() {
