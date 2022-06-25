@@ -98,10 +98,18 @@ fn main() {
           }
         },
         _ => {
-          let mut fin = f.to_string();
-          for original in re.captures_iter(f) {
+          let vw: Vec<String> = env::args().collect();
+          let vw = &vw[1..];
+          let mut s = String::new();
+          for x in vw {
+            s += format!("{x} ").as_str();
+          }
+          s.pop();
+          let mut fin = s;
+          for original in re.captures_iter(fin.clone().as_str()) {
             match shortcuts.get(rm_braces(&original[0])) {
               Some(matched) => {
+                println!("{matched}");
                 fin = fin.replace(&original[0], matched);
               },
               None => {
