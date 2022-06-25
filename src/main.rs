@@ -1,6 +1,7 @@
 use std::{env, fs::OpenOptions};
 use std::io::Write;
 use std::fs;
+use std::os;
 use std::collections::HashMap;
 use clipboard_win::{formats, set_clipboard};
 use regex::Regex;
@@ -109,11 +110,15 @@ fn main() {
           for original in re.captures_iter(fin.clone().as_str()) {
             match shortcuts.get(rm_braces(&original[0])) {
               Some(matched) => {
-                println!("{matched}");
                 fin = fin.replace(&original[0], matched);
               },
               None => {
-                panic!("unrecognized shortcut")
+                if &original[0] == "[rn]" {
+                  println!("test");
+                  fin = fin.replace(&original[0], "\r\n");
+                } else {
+                  panic!("unrecognized shortcut")
+                }
               }
             };
           }
