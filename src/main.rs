@@ -42,14 +42,14 @@ fn create_shortcuts_file() {
   fs::File::create(CONFFILE).expect("failed to create config file");
 }
 
-fn set_shortcut(s1: &str, s2: &str) {
+fn set_shortcut(config_path: &str, s1: &str, s2: &str) {
   let mut current = shortcuts_from_file(CONFFILE);
   if current.keys().any(|k| k == &s1) {
     return;
   };
   current.insert(s1.to_string(), s2.to_string());
   //let mut file = fs::File::open(CONFFILE).unwrap(); READONLY
-  let mut file = OpenOptions::new().write(true).open(CONFFILE).unwrap();
+  let mut file = OpenOptions::new().write(true).open(config_path).unwrap();
   create_shortcuts_file();
   let result = serialize(&current);
   file.write(result.as_bytes()).unwrap();
@@ -57,51 +57,52 @@ fn set_shortcut(s1: &str, s2: &str) {
 }
 
 fn main() {
+  let mut path = env::current_exe().unwrap();
+  path.pop();
+  path.push(CONFFILE);
   let mut shortcuts = HashMap::new();
-  let handle = fs::read_dir(".").unwrap();
-  match handle.map(|file| file.unwrap()).find(|file| file.file_name() == CONFFILE) {
-    Some(f) => {
-      shortcuts = shortcuts_from_file(f.path().to_str().unwrap());
-    },
-    None => {
-      create_shortcuts_file()
-    }
-  };
   let args: Vec<String> = env::args().collect(); 
   let re = Regex::new(r"\[\w*\]").unwrap();
+  let config_path = path.to_str().unwrap();
+  if path.is_file() {
+      shortcuts = shortcuts_from_file(config_path);
+  } else {
+      create_shortcuts_file()
+  };
   match args.get(1) {
     Some(f) => {
       match f.as_str() {
+        "--path" => {
+          println!("{}", config_path);
+        }
         "--add" => {
           let s1 = args.get(2).expect("not enough args");
           let s2 = args.get(3).expect("not enough args");
-          set_shortcut(s1, s2);
+          set_shortcut(config_path, s1, s2);
         },
         "--list" => {
-          let l = shortcuts_from_file(CONFFILE);
+          let l = shortcuts_from_file(config_path);
           for (k, v) in l {
             println!("{k} -> {v}");
           }
         },
         "--rm" => {
-          let l = shortcuts_from_file(CONFFILE);
+          let l = shortcuts_from_file(config_path);
           let s1 = args.get(2).expect("not enough args");
           //let drained = l.drain_filter(|&k, v| k != braces(s1)); LOL what the fuck rust? It's been  in nightly 2 years...
           create_shortcuts_file();
           for (k, v) in l.into_iter() {
             if k != s1.to_string() {
-              set_shortcut(&k, &v);
+              set_shortcut(config_path, &k, &v);
             }
           }
         },
         _ => {
           let mut fin = f.to_string();
-          println!("{f}");
           for original in re.captures_iter(f) {
             match shortcuts.get(rm_braces(&original[0])) {
               Some(matched) => {
                 fin = fin.replace(&original[0], matched);
-                println!("{}", &fin);
               },
               None => {
                 panic!("unrecognized shortcut")
